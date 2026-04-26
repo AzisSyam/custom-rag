@@ -1,17 +1,10 @@
 <?php
 
-use App\Http\Controllers\DocumentController;
 use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 
-Route::inertia('/', 'welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-])->name('home');
-
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
-    Route::resource('documents', DocumentController::class)->except(['create', 'edit']);
+Route::get('/', function () {
+    return response()->json([
+        'status' => 'ok',
+        'message' => 'Custom RAG API is running.',
+    ]);
 });
-
-require __DIR__.'/settings.php';
-

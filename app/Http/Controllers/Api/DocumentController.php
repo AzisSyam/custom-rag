@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreDocumentRequest;
 use App\Http\Requests\UpdateDocumentRequest;
 use App\Services\DocumentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class DocumentController extends Controller
 {
@@ -19,13 +18,13 @@ class DocumentController extends Controller
     /**
      * Display a listing of the user's documents.
      */
-    public function index(Request $request): Response
+    public function index(Request $request): JsonResponse
     {
         $documents = $this->documentService->getDocumentsByUser(
             $request->user()->id
         );
 
-        return Inertia::render('documents/index', [
+        return response()->json([
             'documents' => $documents,
         ]);
     }
@@ -42,7 +41,7 @@ class DocumentController extends Controller
         );
 
         return response()->json([
-            'message' => __('Document uploaded successfully.'),
+            'message' => 'Document uploaded successfully.',
             'document' => $document,
         ], 201);
     }
@@ -50,15 +49,15 @@ class DocumentController extends Controller
     /**
      * Display the specified document with its chunks.
      */
-    public function show(Request $request, int $id): Response|JsonResponse
+    public function show(Request $request, int $id): JsonResponse
     {
         $document = $this->documentService->getDocumentWithChunks($id);
 
         if (! $document || $document->user_id !== $request->user()->id) {
-            abort(404);
+            return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        return Inertia::render('documents/show', [
+        return response()->json([
             'document' => $document,
         ]);
     }
@@ -71,13 +70,13 @@ class DocumentController extends Controller
         $document = $this->documentService->getDocumentWithChunks($id);
 
         if (! $document || $document->user_id !== $request->user()->id) {
-            abort(404);
+            return response()->json(['message' => 'Document not found.'], 404);
         }
 
         $updated = $this->documentService->updateDocument($id, $request->validated());
 
         return response()->json([
-            'message' => __('Document updated successfully.'),
+            'message' => 'Document updated successfully.',
             'document' => $updated,
         ]);
     }
@@ -90,13 +89,13 @@ class DocumentController extends Controller
         $document = $this->documentService->getDocumentWithChunks($id);
 
         if (! $document || $document->user_id !== $request->user()->id) {
-            abort(404);
+            return response()->json(['message' => 'Document not found.'], 404);
         }
 
         $this->documentService->deleteDocument($id);
 
         return response()->json([
-            'message' => __('Document deleted successfully.'),
+            'message' => 'Document deleted successfully.',
         ]);
     }
 }
