@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Repositories\Contracts\DocumentChunkRepositoryInterface;
+use App\Repositories\Contracts\DocumentRepositoryInterface;
+use App\Repositories\Eloquent\EloquentDocumentChunkRepository;
+use App\Repositories\Eloquent\EloquentDocumentRepository;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +19,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Bind repository interfaces ke implementasi Eloquent
+        $this->app->bind(
+            DocumentRepositoryInterface::class,
+            EloquentDocumentRepository::class
+        );
+
+        $this->app->bind(
+            DocumentChunkRepositoryInterface::class,
+            EloquentDocumentChunkRepository::class
+        );
     }
 
     /**
@@ -48,3 +61,4 @@ class AppServiceProvider extends ServiceProvider
         );
     }
 }
+

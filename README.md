@@ -1,27 +1,64 @@
-# Laravel + React Starter Kit
+# Custom RAG (Retrieval-Augmented Generation) Infrastructure
 
-## Introduction
+Sistem backend Laravel yang dirancang untuk mengelola dokumen, melakukan ekstraksi teks, dan menyimpan data vektor menggunakan PostgreSQL `pgvector`. Proyek ini difokuskan pada penyediaan infrastruktur dasar untuk pencarian berbasis AI (Semantic Search).
 
-Our React starter kit provides a robust, modern starting point for building Laravel applications with a React frontend using [Inertia](https://inertiajs.com).
+## Fitur Utama
+- **Vector Storage**: Integrasi PostgreSQL dengan ekstensi `pgvector` untuk penyimpanan embedding.
+- **Document Extraction**: Ekstraksi teks otomatis dari file `.txt` dan `.pdf`.
+- **Text Chunking**: Pemecahan teks otomatis menjadi potongan-potongan (chunks) yang optimal untuk pemrosesan LLM.
+- **Service-Repository Architecture**: Implementasi design pattern yang modular untuk memastikan kode mudah dipelihara dan diuji.
 
-Inertia allows you to build modern, single-page React applications using classic server-side routing and controllers. This lets you enjoy the frontend power of React combined with the incredible backend productivity of Laravel and lightning-fast Vite compilation.
+## Persyaratan Sistem
+- **PHP**: 8.2 atau lebih baru.
+- **PostgreSQL**: Versi 15+ dengan ekstensi `pgvector` yang sudah terinstall.
+- **Poppler Utils**: Diperlukan untuk fungsionalitas ekstraksi PDF (`pdftotext`).
+  - **Windows**: [Download poppler-windows](https://blog.alivate.com.au/poppler-windows/) dan tambahkan folder `bin` ke PATH sistem.
+  - **Linux/Ubuntu**: Jalankan `sudo apt-get install poppler-utils`.
 
-This React starter kit utilizes React 19, TypeScript, Tailwind, and the [shadcn/ui](https://ui.shadcn.com) and [radix-ui](https://www.radix-ui.com) component libraries.
+## Setup Proyek
 
-## Official Documentation
+### 1. Instalasi Dependensi
+Jalankan perintah berikut untuk menginstall library PHP yang diperlukan:
+```bash
+composer install
+```
 
-Documentation for all Laravel starter kits can be found on the [Laravel website](https://laravel.com/docs/starter-kits).
+### 2. Konfigurasi Environment
+Buat file `.env` dari template yang ada dan sesuaikan kredensial database PostgreSQL Anda:
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5433
+DB_DATABASE=custom_rag
+DB_USERNAME=postgres
+DB_PASSWORD=your_password
+```
 
-## Contributing
+### 3. Migrasi Database
+Jalankan migrasi untuk membuat tabel dokumen dan mengaktifkan ekstensi vektor:
+```bash
+php artisan migrate
+```
 
-Thank you for considering contributing to our starter kit! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 4. Storage Setup
+Pastikan folder storage memiliki permission yang tepat dan buat link ke public:
+```bash
+php artisan storage:link
+```
 
-All contributions to the Starter Kits from now on should be made through [Maestro](https://github.com/laravel/maestro).
+## Arsitektur & Alur Kerja
 
-## Code of Conduct
+### Pemrosesan Dokumen
+Alur saat dokumen diunggah melalui `DocumentService`:
+1. **Storage**: File disimpan ke disk storage lokal/public.
+2. **Extraction**: `DocumentExtractionService` mendeteksi format file dan mengekstrak teks mentah.
+3. **Chunking**: Teks dipecah menjadi beberapa bagian (default 1000 karakter) untuk efisiensi konteks AI.
+4. **Database**: Metadata dokumen disimpan di tabel `documents`, dan setiap potongan teks disimpan di tabel `document_chunks` lengkap dengan kolom `embedding` (tipe data `vector`).
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Struktur Layer
+- **Services**: Berisi logika bisnis inti (`DocumentService`, `DocumentExtractionService`).
+- **Repositories**: Menangani abstraksi akses database menggunakan Eloquent.
+- **Models**: `Document` dan `DocumentChunk` yang sudah mendukung casting data vektor.
 
-## License
-
-The Laravel + React starter kit is open-sourced software licensed under the MIT license.
+## Lisensi
+Proyek ini bersifat open-source di bawah lisensi MIT.
