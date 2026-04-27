@@ -1,20 +1,44 @@
 # Custom RAG (Retrieval-Augmented Generation) API
 
-Backend API Laravel yang dirancang untuk mengelola dokumen, melakukan ekstraksi teks, dan menyimpan data vektor menggunakan PostgreSQL `pgvector`. Proyek ini adalah sistem **API-only** untuk penyediaan infrastruktur dasar pencarian berbasis AI (Semantic Search).
+Backend API Laravel yang dirancang untuk mengelola dokumen, melakukan ekstraksi teks, dan melakukan tanya jawab cerdas menggunakan LLM (OpenAI) dengan dukungan data vektor PostgreSQL `pgvector`. Proyek ini adalah sistem **API-only** yang menyediakan infrastruktur lengkap untuk sistem RAG.
 
 ## Fitur Utama
-- **Vector Storage**: Integrasi PostgreSQL dengan ekstensi `pgvector` untuk penyimpanan embedding.
+- **RAG Chat (Q&A)**: Bertanya kepada AI (GPT-4o-mini) yang akan menjawab berdasarkan konteks dokumen yang Anda unggah.
+- **Privacy Filtering**: Keamanan data terjamin. Hasil pencarian dan chat hanya terbatas pada dokumen yang diunggah oleh user itu sendiri (Multi-tenant).
+- **Vector Storage**: Integrasi PostgreSQL dengan ekstensi `pgvector` untuk penyimpanan embedding secara efisien.
+- **Semantic Search**: Mencari potongan teks berdasarkan makna (semantik), bukan sekadar kata kunci.
 - **Document Extraction**: Ekstraksi teks otomatis dari file `.txt` dan `.pdf`.
-- **Text Chunking**: Pemecahan teks otomatis menjadi potongan-potongan (chunks) yang optimal untuk pemrosesan LLM.
+- **Auto-Documentation**: Dokumentasi API selalu terbaru dan interaktif menggunakan Scramble.
 - **API Authentication**: Menggunakan Laravel Sanctum untuk autentikasi berbasis token.
-- **Service-Repository Architecture**: Implementasi design pattern yang modular dan mudah diuji.
+
+## Teknologi Utama
+- **Framework**: Laravel 13
+- **Database**: PostgreSQL + `pgvector`
+- **AI Engine**: OpenAI (Models: `gpt-4o-mini`, `text-embedding-3-small`)
+- **Documentation**: Dedoc Scramble
+- **Extraction**: Spatie PDF-to-Text (Poppler Utils)
 
 ## Persyaratan Sistem
 - **PHP**: 8.3+
 - **PostgreSQL**: Versi 15+ dengan ekstensi `pgvector`.
 - **Poppler Utils**: Diperlukan untuk ekstraksi PDF (`pdftotext`).
-  - **Windows**: [Download poppler-windows](https://blog.alivate.com.au/poppler-windows/) dan tambahkan folder `bin` ke PATH sistem.
-  - **Linux/Ubuntu**: `sudo apt-get install poppler-utils`.
+
+### Panduan Instalasi Poppler
+- **Mac (Homebrew)**:
+  ```bash
+  brew install poppler
+  ```
+- **Linux/Ubuntu**:
+  ```bash
+  sudo apt-get update
+  sudo apt-get install poppler-utils
+  ```
+- **Windows**:
+  1. Download [Poppler for Windows](https://github.com/oschwartz10612/poppler-windows/releases/).
+  2. Ekstrak file zip.
+  3. Tambahkan path folder `bin` ke variabel environment `PATH` sistem Anda, ATAU atur `PDFTOTEXT_PATH` di file `.env`.
+
+---
 
 ## Setup Proyek
 
@@ -24,7 +48,7 @@ composer install
 ```
 
 ### 2. Konfigurasi Environment
-Salin `.env.example` ke `.env` dan sesuaikan kredensial database PostgreSQL:
+Salin `.env.example` ke `.env` dan sesuaikan kredensial:
 ```env
 DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
@@ -32,6 +56,9 @@ DB_PORT=5433
 DB_DATABASE=custom_rag
 DB_USERNAME=postgres
 DB_PASSWORD=your_password
+
+OPENAI_API_KEY=sk-your-api-key
+PDFTOTEXT_PATH="C:\path\to\pdftotext.exe" # Hanya jika di Windows dan tidak masuk PATH
 ```
 
 ### 3. Migrasi Database
@@ -39,33 +66,37 @@ DB_PASSWORD=your_password
 php artisan migrate
 ```
 
-## Dokumentasi API (Endpoints)
+---
 
-### Autentikasi
-| Method | Endpoint | Deskripsi |
-| :--- | :--- | :--- |
-| `POST` | `/api/register` | Registrasi user baru |
-| `POST` | `/api/login` | Login & dapatkan Bearer Token |
-| `POST` | `/api/logout` | Logout (revoke token) |
-| `GET` | `/api/user` | Dapatkan data user yang login |
+## Dokumentasi API (Interaktif)
+Proyek ini menggunakan **Scramble** untuk menghasilkan dokumentasi API secara otomatis. Anda dapat mengaksesnya langsung melalui browser:
 
-### Manajemen Dokumen
-*Semua endpoint di bawah memerlukan header `Authorization: Bearer <token>`*
+**URL**: `http://localhost/docs/api`
 
-| Method | Endpoint | Deskripsi |
-| :--- | :--- | :--- |
-| `GET` | `/api/documents` | List semua dokumen user |
-| `POST` | `/api/documents` | Upload dokumen baru |
-| `GET` | `/api/documents/{id}` | Detail dokumen & chunks |
-| `PATCH` | `/api/documents/{id}` | Update metadata dokumen |
-| `DELETE` | `/api/documents/{id}` | Hapus dokumen & chunks |
+Di halaman tersebut, Anda bisa:
+- Melihat daftar endpoint lengkap.
+- Melihat skema Request/Response.
+- Melakukan "Try It Out" untuk mencoba API langsung (memerlukan Authorize dengan Bearer Token).
 
-## Arsitektur & Alur Kerja
+---
 
-1. **Upload**: Dokumen dikirim melalui endpoint `POST /api/documents`.
-2. **Extraction**: `DocumentExtractionService` mengambil teks mentah dari file.
-3. **Chunking**: Teks dipecah menjadi bagian kecil (chunks) secara otomatis.
-4. **Storage**: Data disimpan di PostgreSQL, kolom `embedding` di tabel `document_chunks` siap menampung vektor.
+## Arsitektur & Alur Kerja (RAG)
+
+1. **Indexing**: Saat file diupload, teks diekstrak, dipecah menjadi potongan (chunks), diubah menjadi vektor (embedding), dan disimpan ke database.
+2. **Retrieval**: Saat user bertanya, sistem mencari 5 potongan teks yang paling relevan secara semantik dengan pertanyaan user (dibatasi milik user tersebut).
+3. **Generation**: Konteks teks tersebut dikirim ke OpenAI bersama pertanyaan user untuk menghasilkan jawaban yang akurat.
+
+## Arsitektur Kodingan
+
+Proyek ini menerapkan beberapa design pattern untuk memastikan kode tetap bersih, modular, dan mudah dipelihara:
+
+1. **Service-Repository Pattern**:
+   - **Controllers**: Hanya menangani request/response dan validasi dasar.
+   - **Services**: Berisi logika bisnis inti (seperti alur RAG, ekstraksi dokumen, dll).
+   - **Repositories**: Menangani semua interaksi dengan database (Eloquent).
+2. **Contract-Based Development (Interfaces)**:
+   - Penggunaan *Interface* (Contracts) pada Service dan Repository memudahkan kita untuk mengganti implementasi di masa depan (misal: berpindah dari OpenAI ke Gemini atau dari PostgreSQL ke Pinecone) tanpa merusak logika bisnis utama.
+3. **Sanctum Authentication**: Sistem keamanan berbasis token yang ringan untuk API.
 
 ## Lisensi
 Proyek ini bersifat open-source di bawah lisensi MIT.
