@@ -26,8 +26,13 @@ class AppServiceProvider extends ServiceProvider
         );
 
         $this->app->bind(
-            DocumentChunkRepositoryInterface::class,
-            EloquentDocumentChunkRepository::class
+            \App\Repositories\Contracts\DocumentChunkRepositoryInterface::class,
+            \App\Repositories\Eloquent\EloquentDocumentChunkRepository::class
+        );
+
+        $this->app->bind(
+            \App\Services\Contracts\EmbeddingServiceInterface::class,
+            \App\Services\OpenAIEmbeddingService::class
         );
     }
 
@@ -37,6 +42,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        \Dedoc\Scramble\Scramble::afterOpenApiGenerated(function (\Dedoc\Scramble\Support\Generator\OpenApi $openApi) {
+            $openApi->secure(
+                \Dedoc\Scramble\Support\Generator\SecurityScheme::http('bearer')
+            );
+        });
     }
 
     /**
