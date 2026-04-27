@@ -51,8 +51,12 @@ class DocumentExtractionService
      */
     private function extractFromPdf(string $path): string
     {
-        // On Windows, you might need to specify the binary path if it's not in the PATH.
-        // However, we verified earlier that 'pdftotext' is available in the environment.
-        return Pdf::getText($path);
+        // Membaca path file eksekusi pdftotext.exe dari file .env (khususnya untuk Windows)
+        $binPath = env('PDFTOTEXT_PATH');
+        
+        // Pass path langsung ke constructor agar tidak meledak saat inisialisasi
+        $pdf = $binPath ? new Pdf($binPath) : new Pdf();
+
+        return $pdf->setPdf($path)->text();
     }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Document;
 use App\Repositories\Contracts\DocumentChunkRepositoryInterface;
 use App\Repositories\Contracts\DocumentRepositoryInterface;
+use App\Services\Contracts\EmbeddingServiceInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,7 @@ class DocumentService
         private DocumentRepositoryInterface $documentRepo,
         private DocumentChunkRepositoryInterface $chunkRepo,
         private DocumentExtractionService $extractionService,
+        private EmbeddingServiceInterface $embeddingService,
     ) {}
 
     /**
@@ -46,8 +48,11 @@ class DocumentService
     public function storeDocument(int $userId, array $data, UploadedFile $file): Document
     {
         return DB::transaction(function () use ($userId, $data, $file) {
-            // Simpan file ke storage
-            $path = $file->store('documents', 'public');
+            // Simpan file ke storage dengan nama acak tapi tetap menggunakan ekstensi asli
+            $extension = $file->getClientOriginalExtension();
+            $filename = \Illuminate\Support\Str::random(40) . '.' . $extension;
+            $path = $file->storeAs('documents', $filename, 'public');
+
 
             // Buat record dokumen
             $document = $this->documentRepo->create([
@@ -60,6 +65,15 @@ class DocumentService
             // Baca konten file dan pecah menjadi chunks menggunakan Extraction Service
             $content = $this->extractionService->extractText($path, 'public');
             $chunks = $this->chunkText($content);
+
+            // Ambil semua konten chunk untuk di-embedding secara batch
+            $chunkTexts = array_column($chunks, 'content');
+            $embeddings = $this->embeddingService->embedBatch($chunkTexts);
+
+            // Gabungkan embedding ke dalam data chunks
+            foreach ($chunks as $index => &$chunk) {
+                $chunk['embedding'] = $embeddings[$index] ?? null;
+            }
 
             // Simpan chunks ke database
             $this->chunkRepo->createMany($document->id, $chunks);
