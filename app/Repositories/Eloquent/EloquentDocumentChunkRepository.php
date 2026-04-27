@@ -37,11 +37,34 @@ class EloquentDocumentChunkRepository implements DocumentChunkRepositoryInterfac
                     'content' => $chunk['content'],
                     'chunk_order' => $chunk['chunk_order'] ?? $index + 1,
                     'metadata' => $chunk['metadata'] ?? null,
+                    'embedding' => $chunk['embedding'] ?? null,
                 ])
             );
         }
 
         return $created;
+    }
+
+    /**
+     * Perform vector similarity search to find relevant chunks.
+     *
+     * @param array<int, float> $queryEmbedding
+     * @param int $userId
+     * @param int $limit
+     * @return Collection
+     */
+    public function similaritySearch(array $queryEmbedding, int $userId, int $limit = 5): Collection
+    {
+        $vector = '[' . implode(',', $queryEmbedding) . ']';
+
+        return $this->model->newQuery()
+            ->whereHas('document', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->select(['*', \Illuminate\Support\Facades\DB::raw("embedding <=> '{$vector}' as distance")])
+            ->orderBy('distance')
+            ->limit($limit)
+            ->get();
     }
 
     /**

@@ -16,4 +16,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Documents CRUD
     Route::apiResource('documents', DocumentController::class);
+
+    // Chat / Q&A
+    Route::post('/chat', [\App\Http\Controllers\Api\ChatController::class, 'ask']);
 });
