@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "b3e0c45d-1a8b-4b8a-9a91-4c1234567890",
-		"name": "Custom RAG API v2",
+		"name": "Custom RAG API",
 		"description": "Koleksi API untuk proyek Custom RAG. Sudah dilengkapi dengan otomatisasi token Sanctum.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -278,9 +278,35 @@
 					"response": []
 				},
 				{
-					"name": "Update Document Metadata",
+					"name": "View Document File",
 					"request": {
-						"method": "PATCH",
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/documents/1/view",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"documents",
+								"1",
+								"view"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Document Metadata & Content",
+					"request": {
+						"method": "POST",
 						"header": [
 							{
 								"key": "Accept",
@@ -289,12 +315,22 @@
 							}
 						],
 						"body": {
-							"mode": "urlencoded",
-							"urlencoded": [
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "_method",
+									"value": "PATCH",
+									"type": "text"
+								},
 								{
 									"key": "title",
 									"value": "Judul Baru (Updated)",
 									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
 								}
 							]
 						},
@@ -391,7 +427,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost",
+			"value": "http://custom-rag.test",
 			"type": "string"
 		},
 		{
