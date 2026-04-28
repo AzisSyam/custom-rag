@@ -25,11 +25,20 @@ class DocumentExtractionService
             throw new Exception("File not found at: {$absolutePath}");
         }
 
-        return match (strtolower($extension)) {
+        $text = match (strtolower($extension)) {
             'txt' => $this->extractFromTxt($absolutePath),
             'pdf' => $this->extractFromPdf($absolutePath),
             default => throw new Exception("Unsupported file extension: {$extension}"),
         };
+
+        // Bersihkan karakter UTF-8 yang cacat (malformed) agar aman diproses oleh JSON / OpenAI
+        // 1. mb_scrub menghapus byte sequence yang tidak valid dalam standar UTF-8
+        $text = mb_scrub($text, 'UTF-8');
+        
+        // 2. Hapus control characters (karakter tak kasat mata seperti NUL, ESC) yang sangat dibenci oleh json_encode
+        $text = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $text);
+        
+        return $text;
     }
 
     /**
