@@ -83,11 +83,54 @@ class DocumentService
     }
 
     /**
-     * Update document metadata (title, category).
+     * Update document metadata and optionally re-index content if a new file is uploaded.
      */
-    public function updateDocument(int $id, array $data): Document
+    public function updateDocument(int $id, array $data, ?UploadedFile $file = null): Document
     {
-        return $this->documentRepo->update($id, $data);
+        return DB::transaction(function () use ($id, $data, $file) {
+            $document = $this->documentRepo->findById($id);
+            
+            if (!$document) {
+                throw new \Exception("Document not found");
+            }
+
+            if ($file) {
+                // 1. Hapus file lama jika ada
+                if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
+                    Storage::disk('public')->delete($document->file_path);
+                }
+
+                // 2. Hapus chunks lama
+                $this->chunkRepo->deleteByDocument($id);
+
+                // 3. Simpan file baru
+                $extension = $file->getClientOriginalExtension();
+                $filename = \Illuminate\Support\Str::random(40) . '.' . $extension;
+                $path = $file->storeAs('documents', $filename, 'public');
+
+                // 4. Ekstrak dan embed teks baru
+                $content = $this->extractionService->extractText($path, 'public');
+                $chunks = $this->chunkText($content);
+
+                $chunkTexts = array_column($chunks, 'content');
+                $embeddings = $this->embeddingService->embedBatch($chunkTexts);
+
+                foreach ($chunks as $index => &$chunk) {
+                    $chunk['embedding'] = $embeddings[$index] ?? null;
+                }
+
+                // 5. Simpan chunks baru
+                $this->chunkRepo->createMany($id, $chunks);
+
+                // Update file path di data metadata
+                $data['file_path'] = $path;
+            }
+
+            // Update metadata (dan file_path jika ada file baru)
+            $this->documentRepo->update($id, $data);
+
+            return $this->documentRepo->findById($id)->load('chunks');
+        });
     }
 
     /**

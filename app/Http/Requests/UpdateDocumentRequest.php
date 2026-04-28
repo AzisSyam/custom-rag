@@ -24,6 +24,7 @@ class UpdateDocumentRequest extends FormRequest
         return [
             'title' => ['sometimes', 'string', 'max:255'],
             'category' => ['sometimes', 'string', 'max:255'],
+            'file' => ['sometimes', 'file', 'extensions:pdf,txt', 'max:10240'],
         ];
     }
 }
