@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateDocumentRequest;
 use App\Services\DocumentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class DocumentController extends Controller
 {
@@ -63,6 +64,24 @@ class DocumentController extends Controller
     }
 
     /**
+     * View the specified document file natively in the browser.
+     */
+    public function viewFile(Request $request, int $id)
+    {
+        $document = $this->documentService->getDocumentWithChunks($id);
+
+        if (! $document || $document->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Document not found.'], 404);
+        }
+
+        if (! $document->file_path || ! Storage::disk('public')->exists($document->file_path)) {
+            return response()->json(['message' => 'File not found on server.'], 404);
+        }
+
+        return Storage::disk('public')->response($document->file_path);
+    }
+
+    /**
      * Update the specified document's metadata.
      */
     public function update(UpdateDocumentRequest $request, int $id): JsonResponse
@@ -73,7 +92,11 @@ class DocumentController extends Controller
             return response()->json(['message' => 'Document not found.'], 404);
         }
 
-        $updated = $this->documentService->updateDocument($id, $request->validated());
+        $updated = $this->documentService->updateDocument(
+            $id, 
+            $request->validated(),
+            $request->file('file')
+        );
 
         return response()->json([
             'message' => 'Document updated successfully.',

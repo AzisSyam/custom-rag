@@ -15,6 +15,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
 
     // Documents CRUD
+    Route::get('/documents/{id}/view', [DocumentController::class, 'viewFile']);
     Route::apiResource('documents', DocumentController::class);
 
     // Chat / Q&A
