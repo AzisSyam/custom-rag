@@ -12,8 +12,27 @@ class OpenAIEmbeddingService implements EmbeddingServiceInterface
 
     public function __construct()
     {
-        $this->client = OpenAI::client(config('services.openai.api_key'));
         $this->model = config('services.openai.embedding_model');
+    }
+
+    /**
+     * Get the OpenAI client instance (Lazy initialization).
+     */
+    private function getClient()
+    {
+        if ($this->client) {
+            return $this->client;
+        }
+
+        $apiKey = config('services.openai.api_key');
+
+        if (! $apiKey) {
+            throw new \Exception('OpenAI API key is not configured. Please add OPENAI_API_KEY to your .env file.');
+        }
+
+        $this->client = OpenAI::client($apiKey);
+
+        return $this->client;
     }
 
     /**
@@ -25,7 +44,7 @@ class OpenAIEmbeddingService implements EmbeddingServiceInterface
             return [];
         }
 
-        $response = $this->client->embeddings()->create([
+        $response = $this->getClient()->embeddings()->create([
             'model' => $this->model,
             'input' => $texts,
         ]);
@@ -43,7 +62,7 @@ class OpenAIEmbeddingService implements EmbeddingServiceInterface
      */
     public function embed(string $text): array
     {
-        $response = $this->client->embeddings()->create([
+        $response = $this->getClient()->embeddings()->create([
             'model' => $this->model,
             'input' => $text,
         ]);
