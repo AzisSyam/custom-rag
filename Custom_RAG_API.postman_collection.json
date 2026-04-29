@@ -47,17 +47,17 @@
 								},
 								{
 									"key": "email",
-									"value": "test@example.com",
+									"value": "humantest@example.com",
 									"type": "text"
 								},
 								{
 									"key": "password",
-									"value": "password123",
+									"value": "ragTesting123##",
 									"type": "text"
 								},
 								{
 									"key": "password_confirmation",
-									"value": "password123",
+									"value": "ragTesting123##",
 									"type": "text"
 								}
 							]
@@ -108,12 +108,12 @@
 							"formdata": [
 								{
 									"key": "email",
-									"value": "test@example.com",
+									"value": "humantest@example.com",
 									"type": "text"
 								},
 								{
 									"key": "password",
-									"value": "password123",
+									"value": "ragTesting123##",
 									"type": "text"
 								}
 							]
@@ -396,7 +396,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"question\": \"Jelaskan isi dari dokumen yang saya upload tadi!\"\n}"
+							"raw": "{\n    \"question\": \"Apa yang bisa saya tanyakan?\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/chat",
