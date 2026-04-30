@@ -29,8 +29,6 @@ Route::get('/nuke-database-secure-123', function () {
         return "Tambahkan ?confirm=1 di URL untuk menghapus.";
     }
 
-    \Illuminate\Support\Facades\DB::statement('SET session_replication_role = "replica";');
-    
     $tables = [
         'document_chunks', 'documents', 'personal_access_tokens', 
         'sessions', 'password_reset_tokens', 'users', 
@@ -41,8 +39,7 @@ Route::get('/nuke-database-secure-123', function () {
         \Illuminate\Support\Facades\DB::statement("DROP TABLE IF EXISTS \"$table\" CASCADE;");
     }
 
-    \Illuminate\Support\Facades\DB::statement('SET session_replication_role = "origin";');
-
     return "Database Cleaned! Silakan jalankan php artisan migrate --force sekarang.";
 });
+
 
