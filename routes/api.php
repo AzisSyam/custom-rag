@@ -32,8 +32,9 @@ Route::get('/nuke-database-secure-123', function () {
     $tables = [
         'document_chunks', 'documents', 'personal_access_tokens', 
         'sessions', 'password_reset_tokens', 'users', 
-        'cache', 'jobs', 'job_batches', 'failed_jobs', 'migrations'
+        'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs', 'migrations'
     ];
+
 
     foreach ($tables as $table) {
         \Illuminate\Support\Facades\DB::statement("DROP TABLE IF EXISTS \"$table\" CASCADE;");
