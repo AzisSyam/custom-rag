@@ -22,25 +22,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chat', [\App\Http\Controllers\Api\ChatController::class, 'ask']);
 });
 
-// TEMPORARY: Database cleanup route for testing phase
-// Access via: /api/nuke-database-secure-123?confirm=1
-Route::get('/nuke-database-secure-123', function () {
-    if (app()->environment('production') && !request()->has('confirm')) {
-        return "Tambahkan ?confirm=1 di URL untuk menghapus.";
-    }
-
-    $tables = [
-        'document_chunks', 'documents', 'personal_access_tokens', 
-        'sessions', 'password_reset_tokens', 'users', 
-        'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs', 'migrations'
-    ];
-
-
-    foreach ($tables as $table) {
-        \Illuminate\Support\Facades\DB::statement("DROP TABLE IF EXISTS \"$table\" CASCADE;");
-    }
-
-    return "Database Cleaned! Silakan jalankan php artisan migrate --force sekarang.";
-});
 
 
