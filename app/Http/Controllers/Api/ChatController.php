@@ -28,14 +28,13 @@ class ChatController extends Controller
                 $request->user()->id
             );
 
-            return response()->json([
+            return $this->sendResponse([
                 'answer' => $answer,
-            ]);
+            ], 'AI answer retrieved successfully.');
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Terjadi kesalahan saat memproses pertanyaan.',
+            return $this->sendError('Terjadi kesalahan saat memproses pertanyaan.', 500, [
                 'error' => $e->getMessage(),
-            ], 500);
+            ]);
         }
     }
 }

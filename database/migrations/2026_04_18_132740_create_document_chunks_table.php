@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('document_chunks', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('document_id')->constrained()->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->foreignUuid('document_id')->constrained()->onDelete('cascade');
             $table->longText('content');
             $table->integer('chunk_order');
             $table->json('metadata')->nullable();

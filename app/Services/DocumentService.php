@@ -23,7 +23,7 @@ class DocumentService
     /**
      * Get all documents belonging to a user.
      */
-    public function getDocumentsByUser(int $userId): Collection
+    public function getDocumentsByUser(string $userId): Collection
     {
         return $this->documentRepo->findByUser($userId);
     }
@@ -31,7 +31,7 @@ class DocumentService
     /**
      * Get a single document with its chunks.
      */
-    public function getDocumentWithChunks(int $id): ?Document
+    public function getDocumentWithChunks(string $id): ?Document
     {
         $document = $this->documentRepo->findById($id);
 
@@ -45,7 +45,7 @@ class DocumentService
     /**
      * Store a new document: save file, create DB record, and chunk the content.
      */
-    public function storeDocument(int $userId, array $data, UploadedFile $file): Document
+    public function storeDocument(string $userId, array $data, UploadedFile $file): Document
     {
         return DB::transaction(function () use ($userId, $data, $file) {
             // Simpan file ke storage dengan nama acak tapi tetap menggunakan ekstensi asli
@@ -85,7 +85,7 @@ class DocumentService
     /**
      * Update document metadata and optionally re-index content if a new file is uploaded.
      */
-    public function updateDocument(int $id, array $data, ?UploadedFile $file = null): Document
+    public function updateDocument(string $id, array $data, ?UploadedFile $file = null): Document
     {
         return DB::transaction(function () use ($id, $data, $file) {
             $document = $this->documentRepo->findById($id);
@@ -136,7 +136,7 @@ class DocumentService
     /**
      * Delete a document, its chunks, and the physical file.
      */
-    public function deleteDocument(int $id): bool
+    public function deleteDocument(string $id): bool
     {
         return DB::transaction(function () use ($id) {
             $document = $this->documentRepo->findById($id);

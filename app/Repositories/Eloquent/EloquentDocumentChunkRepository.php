@@ -15,7 +15,7 @@ class EloquentDocumentChunkRepository implements DocumentChunkRepositoryInterfac
     /**
      * Get all chunks for a document, ordered by chunk_order.
      */
-    public function findByDocument(int $documentId): Collection
+    public function findByDocument(string $documentId): Collection
     {
         return $this->model->newQuery()
             ->where('document_id', $documentId)
@@ -26,7 +26,7 @@ class EloquentDocumentChunkRepository implements DocumentChunkRepositoryInterfac
     /**
      * Create multiple chunks for a document.
      */
-    public function createMany(int $documentId, array $chunks): Collection
+    public function createMany(string $documentId, array $chunks): Collection
     {
         $created = new Collection();
 
@@ -53,7 +53,7 @@ class EloquentDocumentChunkRepository implements DocumentChunkRepositoryInterfac
      * @param int $limit
      * @return Collection
      */
-    public function similaritySearch(array $queryEmbedding, int $userId, int $limit = 5): Collection
+    public function similaritySearch(array $queryEmbedding, string $userId, int $limit = 5): Collection
     {
         $vector = '[' . implode(',', $queryEmbedding) . ']';
 
@@ -70,7 +70,7 @@ class EloquentDocumentChunkRepository implements DocumentChunkRepositoryInterfac
     /**
      * Delete all chunks belonging to a document.
      */
-    public function deleteByDocument(int $documentId): bool
+    public function deleteByDocument(string $documentId): bool
     {
         return $this->model->newQuery()
             ->where('document_id', $documentId)

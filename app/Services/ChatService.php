@@ -45,7 +45,7 @@ class ChatService
      * @param int $userId ID User yang bertanya (untuk filter dokumen).
      * @return string Jawaban dari AI.
      */
-    public function askQuestion(string $question, int $userId): string
+    public function askQuestion(string $question, string $userId): string
     {
         // 1. Ubah pertanyaan user menjadi vektor angka
         $questionVector = $this->embeddingService->embed($question);

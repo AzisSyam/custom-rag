@@ -15,12 +15,12 @@ interface DocumentRepositoryInterface
     /**
      * Find a document by its ID.
      */
-    public function findById(int $id): ?Document;
+    public function findById(string $id): ?Document;
 
     /**
      * Get all documents belonging to a user.
      */
-    public function findByUser(int $userId): Collection;
+    public function findByUser(string $userId): Collection;
 
     /**
      * Get all documents by category.
@@ -35,10 +35,10 @@ interface DocumentRepositoryInterface
     /**
      * Update an existing document.
      */
-    public function update(int $id, array $data): Document;
+    public function update(string $id, array $data): Document;
 
     /**
      * Delete a document by its ID.
      */
-    public function delete(int $id): bool;
+    public function delete(string $id): bool;
 }

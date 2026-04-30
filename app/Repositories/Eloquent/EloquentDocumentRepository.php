@@ -23,7 +23,7 @@ class EloquentDocumentRepository implements DocumentRepositoryInterface
     /**
      * Find a document by its ID.
      */
-    public function findById(int $id): ?Document
+    public function findById(string $id): ?Document
     {
         return $this->model->newQuery()->find($id);
     }
@@ -31,7 +31,7 @@ class EloquentDocumentRepository implements DocumentRepositoryInterface
     /**
      * Get all documents belonging to a user.
      */
-    public function findByUser(int $userId): Collection
+    public function findByUser(string $userId): Collection
     {
         return $this->model->newQuery()
             ->where('user_id', $userId)
@@ -61,7 +61,7 @@ class EloquentDocumentRepository implements DocumentRepositoryInterface
     /**
      * Update an existing document.
      */
-    public function update(int $id, array $data): Document
+    public function update(string $id, array $data): Document
     {
         $document = $this->model->newQuery()->findOrFail($id);
         $document->update($data);
@@ -72,7 +72,7 @@ class EloquentDocumentRepository implements DocumentRepositoryInterface
     /**
      * Delete a document by its ID.
      */
-    public function delete(int $id): bool
+    public function delete(string $id): bool
     {
         $document = $this->model->newQuery()->findOrFail($id);
 
