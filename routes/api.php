@@ -21,3 +21,28 @@ Route::middleware('auth:sanctum')->group(function () {
     // Chat / Q&A
     Route::post('/chat', [\App\Http\Controllers\Api\ChatController::class, 'ask']);
 });
+
+// TEMPORARY: Database cleanup route for testing phase
+// Access via: /api/nuke-database-secure-123?confirm=1
+Route::get('/nuke-database-secure-123', function () {
+    if (app()->environment('production') && !request()->has('confirm')) {
+        return "Tambahkan ?confirm=1 di URL untuk menghapus.";
+    }
+
+    \Illuminate\Support\Facades\DB::statement('SET session_replication_role = "replica";');
+    
+    $tables = [
+        'document_chunks', 'documents', 'personal_access_tokens', 
+        'sessions', 'password_reset_tokens', 'users', 
+        'cache', 'jobs', 'job_batches', 'failed_jobs', 'migrations'
+    ];
+
+    foreach ($tables as $table) {
+        \Illuminate\Support\Facades\DB::statement("DROP TABLE IF EXISTS \"$table\" CASCADE;");
+    }
+
+    \Illuminate\Support\Facades\DB::statement('SET session_replication_role = "origin";');
+
+    return "Database Cleaned! Silakan jalankan php artisan migrate --force sekarang.";
+});
+
